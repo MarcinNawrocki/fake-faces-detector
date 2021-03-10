@@ -1,7 +1,10 @@
 import os
 import typing as t
+import random
 from glob import glob
 from PIL import Image
+
+import numpy as np
 
 # construct images paths
 def get_files_paths_recursive(dir_path: str, extension="*.png")-> t.List[str]:
@@ -22,6 +25,7 @@ def copy_files_and_resize(source_dir: str, result_dir: str, size=(256,256)):
         resized_image = image.resize(SIZE)
         new_image_path = os.path.join(RESULT_PATH, os.path.basename(image_path))
         resized_image.save(new_image_path)
+        
         
 def get_image_data(src_path: str, random_shuffle=True)-> t.Generator[np.ndarray, None, None]:
     images_paths = get_files_paths_recursive(src_path)
