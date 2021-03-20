@@ -13,17 +13,17 @@ def get_files_paths_recursive(dir_path: str, extension="*.png")-> t.List[str]:
 
 
 def copy_files_and_resize(source_dir: str, result_dir: str, size=(256,256)):
-    if not os.path.exists(RESULT_PATH):
-        os.makedirs(RESULT_PATH)
-    images = get_files_paths_recursive(SOURCE_PATH)
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    images = get_files_paths_recursive(source_dir)
     i = 0
     for image_path in images:
         if i%100 == 0:
             print(f"Image number {i}")
         i += 1
         image = Image.open(image_path)
-        resized_image = image.resize(SIZE)
-        new_image_path = os.path.join(RESULT_PATH, os.path.basename(image_path))
+        resized_image = image.resize(size)
+        new_image_path = os.path.join(result_dir, os.path.basename(image_path))
         resized_image.save(new_image_path)
         
         
@@ -39,6 +39,6 @@ def get_image_data(src_path: str, random_shuffle=True, type='float')-> t.Generat
         elif type == 'int':
             np_image = np.array(tmp_image).astype(np.uint8)
         else:
-            raise ValuError('Bad data type specified')
+            raise ValueError('Bad data type specified')
         tmp_image.close()
         yield np_image
