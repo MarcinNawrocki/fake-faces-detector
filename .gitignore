@@ -132,3 +132,6 @@ dmypy.json
 .idea/
 .vscode/settings.json
 src/utils/__init__.py
+
+#Images
+*.png
