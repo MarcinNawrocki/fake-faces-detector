@@ -131,3 +131,7 @@ dmypy.json
 #Pycharm
 .idea/
 .vscode/settings.json
+src/utils/__init__.py
+
+#Images
+*.png
