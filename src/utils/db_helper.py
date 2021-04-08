@@ -30,7 +30,7 @@ def copy_files_and_resize(source_dir: str, result_dir: str, size=(256, 256)):
         resized_image.save(new_image_path)
 
 
-def get_image_data(src_path: str, random_shuffle=True, max_number_of_images=1000, type='float') -> t.Generator[np.ndarray, None, None]:
+def get_image_data(src_path: str, random_shuffle=True, max_number_of_images=1000, type='float', grayscale=False) -> t.Generator[np.ndarray, None, None]:
     images_paths = get_files_paths_recursive(src_path)
     if random_shuffle:
         random.shuffle(images_paths)
@@ -38,6 +38,9 @@ def get_image_data(src_path: str, random_shuffle=True, max_number_of_images=1000
     print(f"len: {len(images_paths)}")
     for image_path in images_paths:
         tmp_image = Image.open(image_path)
+        if grayscale:
+            tmp_image = tmp_image.convert('L')
+            
         if type == 'float':
             np_image = np.array(tmp_image).astype(np.float32) / 255
         elif type == 'int':
