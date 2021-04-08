@@ -49,3 +49,20 @@ def get_image_data(src_path: str, random_shuffle=True, max_number_of_images=1000
             raise ValueError('Bad data type specified')
         tmp_image.close()
         yield np_image
+
+def construct_db_from_dirs(source_dirs: t.List[str], result_dir: str, extension=".png"):
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    images = []
+    for source_dir in source_dirs:
+        tmp_imgs = []
+        tmp_imgs = get_files_paths_recursive(source_dir)
+        images += tmp_imgs
+    i=0
+    for image_path in images:
+        if i%100 == 0:
+            print(f"Image number {i}")
+        i += 1
+        image = Image.open(image_path)
+        new_image_path = os.path.join(result_dir, (str(i)+extension))
+        image.save(new_image_path)
