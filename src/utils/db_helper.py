@@ -9,9 +9,13 @@ import numpy as np
 # construct images paths
 
 
-def get_files_paths_recursive(dir_path: str, extension="*.png") -> t.List[str]:
-    images = [image for x in os.walk(dir_path)
-              for image in glob(os.path.join(x[0], extension))]
+def get_files_paths_recursive(dir_path: str, extension="*.png", category=None) -> t.List[str]:
+    if category is None:
+        images = [image for x in os.walk(dir_path)
+                for image in glob(os.path.join(x[0], extension))]
+    else:
+        images = [(image, category) for x in os.walk(dir_path)
+                for image in glob(os.path.join(x[0], extension))]
     return images
 
 
