@@ -135,3 +135,9 @@ src/utils/__init__.py
 
 #Images
 *.png
+
+#models
+*.h5
+
+#data
+*.csv
