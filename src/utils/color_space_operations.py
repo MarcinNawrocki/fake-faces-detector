@@ -7,7 +7,7 @@ from skimage.color import rgb2hsv, rgb2ycbcr
 from skimage.feature import greycomatrix
 
 
-def all_colorspaces_from_rgb(np_rgb_img: np.ndarray) -> np.ndarray:
+def all_colorspaces_from_rgb(np_rgb_img: np.ndarray, type='float') -> np.ndarray:
     """Generates numpy array containing 9 color componenets from RGB image with shape (x,y,3). 
     Color componenents order is R,G,B,H,S,V,Y,Cb,Cr
 
@@ -23,15 +23,37 @@ def all_colorspaces_from_rgb(np_rgb_img: np.ndarray) -> np.ndarray:
     """
     if np_rgb_img.shape[2] < 3 or len(np_rgb_img.shape) != 3:
         raise ValueError("Bad shape of input image")
-    np_img_hsv = rgb2hsv(np_rgb_img)
-    np_img_ycbcr = rgb2ycbcr(np_rgb_img) / 255
+
+    np_img_hsv = rgb_to_hsv(np_rgb_img, type=type)
+    np_img_ycbcr = rgb_to_ycbcr(np_rgb_img, type=type)
     # (x,y,9) shape insted of (x,y,3)
     new_shape = list(np_rgb_img.shape[:2])+[9]
-    np_img_all_colors = np.empty(new_shape)
+    new_type = np.float64 if type=='float' else np.uint8
+    np_img_all_colors = np.empty(new_shape, dtype=new_type)
     np_img_all_colors[:, :, :3] = np_rgb_img
     np_img_all_colors[:, :, 3:6] = np_img_hsv
     np_img_all_colors[:, :, 6:] = np_img_ycbcr
     return np_img_all_colors
+
+def rgb_to_hsv(np_rgb_img: np.ndarray, type='float'):
+    if type == 'float':
+        np_img_hsv = rgb2hsv(np_rgb_img)
+    elif type == 'int':
+        np_img_hsv = (rgb2hsv(np_rgb_img)*255).astype(np.uint8)
+    else:
+        raise ValueError("Bad type specified")
+        
+    return np_img_hsv
+
+def rgb_to_ycbcr(np_rgb_img: np.ndarray, type='float'):
+    if type == 'float':
+        np_img_ycbcr = rgb2ycbcr(np_rgb_img) / 255
+    elif type == 'int':
+        np_img_ycbcr = rgb2ycbcr(np_rgb_img).astype(np.uint8)
+    else:
+        raise ValueError("Bad type specified")
+        
+    return np_img_ycbcr
 
 
 def comatrix_from_image(np_img: np.ndarray, distances: t.List[int], angles: t.List[float]) -> np.ndarray:
