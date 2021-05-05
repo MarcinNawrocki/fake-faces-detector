@@ -94,7 +94,9 @@ def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: calculated diffference image
     """
-    np_filter = np.array((1, -1)).reshape(1, 2)
+    from scipy.ndimage.filters import convolve
+    mask = [[0,0,0], [0,1,-1], [0,0,0]]
+    np_filter = np.array(mask)
     np_img = np_img.astype(np.int16)
     np_diff_img = np.empty(np_img.shape, dtype=np.int16)
     if len(np_img.shape) == 3:
