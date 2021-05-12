@@ -2,9 +2,8 @@ import typing as t
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage.filters import convolve
 from skimage.color import rgb2hsv, rgb2ycbcr
-from skimage.feature import greycomatrix
+
 
 
 def all_colorspaces_from_rgb(np_rgb_img: np.ndarray, type='float') -> np.ndarray:
@@ -70,6 +69,7 @@ def comatrix_from_image(np_img: np.ndarray, distances: t.List[int], angles: t.Li
     Returns:
         np.ndarray: array containing comatrixes for each distance and angle combination
     """
+    from skimage.feature import greycomatrix
     np_comatrix = np.empty(np_img.shape+(len(distances), len(angles)))
     if len(np_img.shape) == 3:
         for i in range(np_img.shape[-1]):
@@ -80,6 +80,18 @@ def comatrix_from_image(np_img: np.ndarray, distances: t.List[int], angles: t.Li
     else:
         raise ValueError('Bad shape of the image')
     return np_comatrix
+
+def greycoprops_from_image(np_img: np.ndarray, distances: t.List[int], angles: t.List[float], prop: str):
+    from skimage.feature import greycoprops
+    np_comatrix = comatrix_from_image(np_img, distances, angles)
+    if len(np_img.shape) == 3:
+        np_result = np.empty((np_img.shape[-1], len(distances), len(angles)))
+        for i in range(np_img.shape[-1]):
+            np_result[i] = greycoprops(np_comatrix[:,:,i,:,:], prop=prop)
+    else:
+        raise ValueError ("Image shape not supported")
+
+    return np_result
 
 
 def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
@@ -94,18 +106,21 @@ def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: calculated diffference image
     """
+    #TODO compatibility with floats and ints
     from scipy.ndimage.filters import convolve
-    mask = [[0,0,0], [0,1,-1], [0,0,0]]
+    #mask = [[-1,1,1], [-1,-2,1], [1,1,1]]
+    mask = [[0,0,0], [-1,1,0], [0,0,0]]
     np_filter = np.array(mask)
-    np_img = np_img.astype(np.int16)
-    np_diff_img = np.empty(np_img.shape, dtype=np.int16)
+    np_diff_img = np.empty(np_img.shape)
     if len(np_img.shape) == 3:
         for i in range(np_img.shape[-1]):
-            np_diff_img[:, :, i] = convolve(np_img[:, :, i], np_filter)
+            np_diff_img[:, :, i] = np.abs(convolve(np_img[:, :, i], np_filter))
     elif len(np_img.shape) == 2:
-        np_diff_img = convolve(np_img, np_filter)
+        np_diff_img = np.abs(convolve(np_img, np_filter))
     else:
         raise ValueError('Bad shape of the image')
+    # only positive values
+    #np_diff_img[np_diff_img<0] = 0
     return np_diff_img
 
 
