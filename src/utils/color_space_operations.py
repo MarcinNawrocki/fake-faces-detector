@@ -108,8 +108,8 @@ def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
     """
     #TODO compatibility with floats and ints
     from scipy.ndimage.filters import convolve
-    #mask = [[-1,1,1], [-1,-2,1], [1,1,1]]
-    mask = [[0,0,0], [-1,1,0], [0,0,0]]
+    mask = [[-1,1,1], [-1,-2,1], [1,1,1]]
+    #mask = [[0,0,0], [-1,1,0], [0,0,0]]
     np_filter = np.array(mask)
     np_diff_img = np.empty(np_img.shape)
     if len(np_img.shape) == 3:
@@ -141,3 +141,20 @@ def hist_peek_point(np_img: np.ndarray, bins=511, hist_range=(-255, 256)) -> t.T
     idx = int(np.argwhere(hist == y))
     x = int(bins[idx])
     return x, y
+
+
+def float_to_int_img_conversion(np_img):
+    if np_img.max() > 1 or np_img.min() < 0:
+        raise ValueError('Image pixels not in (0,1) range')
+    if not np.issubdtype(np_img.dtype, np.floating):
+        raise ValueError("Image is not float")
+    return (np_img*255).astype(np.uint8)
+
+
+def get_difference_img_gen(dataset_gen):
+    for np_img in dataset_gen:
+        np_all_colorspaces = all_colorspaces_from_rgb(np_img)
+        np_int_img = float_to_int_img_conversion(np_all_colorspaces)
+        np_result_img = calculate_difference_image(np_int_img)
+        yield np_result_img
+
