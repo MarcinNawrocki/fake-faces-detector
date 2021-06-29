@@ -3,7 +3,7 @@ import typing as t
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage.color import rgb2hsv, rgb2ycbcr
-
+from skimage.feature import greycomatrix
 
 
 def all_colorspaces_from_rgb(np_rgb_img: np.ndarray, type='float') -> np.ndarray:
@@ -32,6 +32,7 @@ def all_colorspaces_from_rgb(np_rgb_img: np.ndarray, type='float') -> np.ndarray
     np_img_all_colors[:, :, :3] = np_rgb_img
     np_img_all_colors[:, :, 3:6] = np_img_hsv
     np_img_all_colors[:, :, 6:] = np_img_ycbcr
+    
     return np_img_all_colors
 
 def rgb_to_hsv(np_rgb_img: np.ndarray, type='float'):
@@ -69,13 +70,14 @@ def comatrix_from_image(np_img: np.ndarray, distances: t.List[int], angles: t.Li
     Returns:
         np.ndarray: array containing comatrixes for each distance and angle combination
     """
-    from skimage.feature import greycomatrix
-    np_comatrix = np.empty(np_img.shape+(len(distances), len(angles)))
+    
     if len(np_img.shape) == 3:
+        np_comatrix = np.empty((256,256,np_img.shape[-1],len(distances),len(angles)))
         for i in range(np_img.shape[-1]):
             np_comatrix[:, :, i] = greycomatrix(
                 np_img[:, :, i], distances, angles)
     elif len(np_img.shape) == 2:
+        np_comatrix = np.empty((256,256, len(distances),len(angles)))
         np_comatrix = greycomatrix(np_img, distances, angles)
     else:
         raise ValueError('Bad shape of the image')
