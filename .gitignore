@@ -135,3 +135,7 @@ src/utils/__init__.py
 
 #Images
 *.png
+
+# Sheets
+*.csv
+*.xls*
