@@ -42,9 +42,9 @@ def get_image_data(src_path: str, random_shuffle=True, max_number_of_images=1000
             tmp_image = tmp_image.convert('L')
             
         if type == 'float':
-            np_image = np.array(tmp_image).astype(np.float32) / 255
+            np_image = np.array(tmp_image, dtype=np.float32) / 255
         elif type == 'int':
-            np_image = np.array(tmp_image).astype(np.uint8)
+            np_image = np.array(tmp_image, dtype=np.uint8)
         else:
             raise ValueError('Bad data type specified')
         tmp_image.close()
