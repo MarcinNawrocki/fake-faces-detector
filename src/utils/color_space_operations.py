@@ -205,3 +205,10 @@ def float_to_int_img_conversion(np_img: np.ndarray) -> np.ndarray:
     if not np.issubdtype(np_img.dtype, np.floating):
         raise ValueError("Image is not float")
     return (np_img*255).astype(np.uint8)
+
+def get_difference_img_gen(dataset_gen):
+    for np_img in dataset_gen:
+        np_all_colorspaces = all_colorspaces_from_rgb(np_img)
+        np_int_img = float_to_int_img_conversion(np_all_colorspaces)
+        np_result_img = calculate_difference_image(np_int_img)
+        yield np_result_img
