@@ -220,3 +220,23 @@ def get_difference_img_gen(dataset_gen, kernel="diff"):
         np_int_img = float_to_int_img_conversion(np_all_colorspaces)
         np_result_img = calculate_difference_image(np_int_img, kernel=kernel)
         yield np_result_img
+
+
+def hist_peek_point(np_img: np.ndarray, bins=256, hist_range=(0,255), channels=9)-> t.Tuple[float, int]:
+    peek_points = []
+    for colorspace in range(channels):
+        np_hist, bins = np.histogram(np_img[:,:,colorspace], density=True, bins=bins, range=hist_range)
+        y = np_hist.max()
+        idx = np.argwhere(np_hist==y)
+        
+        if len(idx)>1:
+            idx = int(idx[-1])
+        else:
+            idx = int(idx)
+        x = int(bins[idx])
+
+        peek_points.append((x,y))
+    return peek_points
+
+
+    
