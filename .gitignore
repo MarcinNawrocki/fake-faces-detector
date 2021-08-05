@@ -144,3 +144,6 @@ src/utils/__init__.py
 
 #data
 *.csv
+
+# directory with data
+exp/

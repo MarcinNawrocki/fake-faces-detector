@@ -132,28 +132,37 @@ def greycoprops_from_image(np_img: np.ndarray, distances: t.List[int], angles: t
         np_result = np.empty((np_img.shape[-1], len(distances), len(angles)))
         for i in range(np_img.shape[-1]):
             np_result[i] = greycoprops(np_comatrix[:, :, i, :, :], prop=prop)
+    elif len(np_img.shape) == 2:
+        np_result = np.empty((1, len(distances), len(angles)))
+        np_result = greycoprops(np_comatrix[:, :, :, :], prop=prop)
     else:
         raise ValueError("Image shape not supported")
 
     return np_result
 
 
-def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
-    """Calculate difference image that is convolution with (1,-1) filter
-
+def calculate_difference_image(np_img: np.ndarray, kernel="diff") -> np.ndarray:
+    """Calculate difference image that is convolution with specified filter. 
+    Available kernes:
+        - diff: horizontal difference kernel [[-1,1,0]]
+        - grad: gradient directonial  [[-1,1,1], [-1,-2,1], [1,1,1]]
     Args:
         np_img (np.ndarray): input image, should be image with integer pixels in range 0-255
-
+        kernel (str, optional): Spe. Defaults to "diff".
     Raises:
         ValueError: len(np_img.shape) other than 2 or 3
-
+        ValueError: unknown kernel specified
     Returns:
         np.ndarray: calculated diffference image
     """
-    # TODO compatibility with floats and ints
     from scipy.ndimage.filters import convolve
-    mask = [[-1, 1, 1], [-1, -2, 1], [1, 1, 1]]
-    #mask = [[0,0,0], [-1,1,0], [0,0,0]]
+    if kernel == "diff":
+        mask = [[0,0,0], [-1,1,0], [0,0,0]]
+    elif kernel == "grad":
+        mask = [[-1, 1, 1], [-1, -2, 1], [1, 1, 1]]
+    else:
+        raise ValueError('Unknown kernel specified')
+
     np_filter = np.array(mask)
     np_diff_img = np.empty(np_img.shape)
     if len(np_img.shape) == 3:
@@ -163,12 +172,11 @@ def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
         np_diff_img = np.abs(convolve(np_img, np_filter))
     else:
         raise ValueError('Bad shape of the image')
-    # only positive values
-    #np_diff_img[np_diff_img<0] = 0
+
     return np_diff_img
 
 
-def hist_peek_point(np_img: np.ndarray, bins=511, hist_range=(-255, 256)) -> t.Tuple[float, int]:
+def hist_peek_point(np_img: np.ndarray, bins=256, hist_range=(0,255)) -> t.Tuple[float, int]:
     """Calculate histogram peek point
 
     Args:
@@ -179,12 +187,19 @@ def hist_peek_point(np_img: np.ndarray, bins=511, hist_range=(-255, 256)) -> t.T
     Returns:
         t.Tuple[float, int]: peek point coordinates (pixel value, number of occurences)
     """
-    hist, bins = np.histogram(np_img, density=True,
+
+    np_hist, bins = np.histogram(np_img, density=True,
                               bins=bins, range=hist_range)
-    y = hist.max()
-    idx = int(np.argwhere(hist == y))
+    y = np_hist.max()
+    idx = np.argwhere(np_hist==y)
+    if len(idx)>1:
+        idx = int(idx[0])
+    else:
+        idx = int(idx)
+        
     x = int(bins[idx])
-    return x, y
+
+    return (x,y)
 
 
 def float_to_int_img_conversion(np_img: np.ndarray) -> np.ndarray:
