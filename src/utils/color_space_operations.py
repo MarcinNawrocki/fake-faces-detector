@@ -138,22 +138,31 @@ def greycoprops_from_image(np_img: np.ndarray, distances: t.List[int], angles: t
     return np_result
 
 
-def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
-    """Calculate difference image that is convolution with (1,-1) filter
+def calculate_difference_image(np_img: np.ndarray, kernel="diff") -> np.ndarray:
+    """Calculate difference image that is convolution with specified filter. 
+    Available kernes:
+        - diff: horizontal difference kernel [[-1,1,0]]
+        - grad: gradient directonial  [[-1,1,1], [-1,-2,1], [1,1,1]]
 
     Args:
         np_img (np.ndarray): input image, should be image with integer pixels in range 0-255
+        kernel (str, optional): Spe. Defaults to "diff".
 
     Raises:
         ValueError: len(np_img.shape) other than 2 or 3
+        ValueError: unknown kernel specified
 
     Returns:
         np.ndarray: calculated diffference image
     """
-    # TODO compatibility with floats and ints
     from scipy.ndimage.filters import convolve
-    mask = [[-1, 1, 1], [-1, -2, 1], [1, 1, 1]]
-    #mask = [[0,0,0], [-1,1,0], [0,0,0]]
+    if kernel == "diff":
+        mask = [[0,0,0], [-1,1,0], [0,0,0]]
+    elif kernel == "grad":
+        mask = [[-1, 1, 1], [-1, -2, 1], [1, 1, 1]]
+    else:
+        raise ValueError('Unknown kernel specified')
+
     np_filter = np.array(mask)
     np_diff_img = np.empty(np_img.shape)
     if len(np_img.shape) == 3:
@@ -163,28 +172,27 @@ def calculate_difference_image(np_img: np.ndarray) -> np.ndarray:
         np_diff_img = np.abs(convolve(np_img, np_filter))
     else:
         raise ValueError('Bad shape of the image')
-    # only positive values
-    #np_diff_img[np_diff_img<0] = 0
+
     return np_diff_img
 
 
-def hist_peek_point(np_img: np.ndarray, bins=511, hist_range=(-255, 256)) -> t.Tuple[float, int]:
-    """Calculate histogram peek point
+# def hist_peek_point(np_img: np.ndarray, bins=511, hist_range=(-255, 256)) -> t.Tuple[float, int]:
+#     """Calculate histogram peek point
 
-    Args:
-        np_img (np.ndarray): input image to calculate histograms 
-        bins (int, optional): number of histogram intervals. Defaults to 511.
-        hist_range (tuple, optional): image pixels range. Defaults to (-255, 256).
+#     Args:
+#         np_img (np.ndarray): input image to calculate histograms 
+#         bins (int, optional): number of histogram intervals. Defaults to 511.
+#         hist_range (tuple, optional): image pixels range. Defaults to (-255, 256).
 
-    Returns:
-        t.Tuple[float, int]: peek point coordinates (pixel value, number of occurences)
-    """
-    hist, bins = np.histogram(np_img, density=True,
-                              bins=bins, range=hist_range)
-    y = hist.max()
-    idx = int(np.argwhere(hist == y))
-    x = int(bins[idx])
-    return x, y
+#     Returns:
+#         t.Tuple[float, int]: peek point coordinates (pixel value, number of occurences)
+#     """
+#     hist, bins = np.histogram(np_img, density=True,
+#                               bins=bins, range=hist_range)
+#     y = hist.max()
+#     idx = int(np.argwhere(hist == y))
+#     x = int(bins[idx])
+#     return x, y
 
 
 def float_to_int_img_conversion(np_img: np.ndarray) -> np.ndarray:
@@ -205,3 +213,30 @@ def float_to_int_img_conversion(np_img: np.ndarray) -> np.ndarray:
     if not np.issubdtype(np_img.dtype, np.floating):
         raise ValueError("Image is not float")
     return (np_img*255).astype(np.uint8)
+
+def get_difference_img_gen(dataset_gen, kernel="diff"):
+    for np_img in dataset_gen:
+        np_all_colorspaces = all_colorspaces_from_rgb(np_img)
+        np_int_img = float_to_int_img_conversion(np_all_colorspaces)
+        np_result_img = calculate_difference_image(np_int_img, kernel=kernel)
+        yield np_result_img
+
+
+def hist_peek_point(np_img: np.ndarray, bins=256, hist_range=(0,255), channels=9)-> t.Tuple[float, int]:
+    peek_points = []
+    for colorspace in range(channels):
+        np_hist, bins = np.histogram(np_img[:,:,colorspace], density=True, bins=bins, range=hist_range)
+        y = np_hist.max()
+        idx = np.argwhere(np_hist==y)
+        
+        if len(idx)>1:
+            idx = int(idx[-1])
+        else:
+            idx = int(idx)
+        x = int(bins[idx])
+
+        peek_points.append((x,y))
+    return peek_points
+
+
+    
