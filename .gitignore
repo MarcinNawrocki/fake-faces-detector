@@ -139,3 +139,11 @@ src/utils/__init__.py
 # Sheets
 *.csv
 *.xls*
+#models
+*.h5
+
+#data
+*.csv
+
+# directory with data
+exp/
