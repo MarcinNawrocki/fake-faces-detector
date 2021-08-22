@@ -147,3 +147,6 @@ src/utils/__init__.py
 
 # directory with data
 exp/
+
+#other
+*.ini
